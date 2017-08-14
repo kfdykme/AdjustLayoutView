@@ -10,19 +10,17 @@ import android.view.*;
 
 public class MainActivity extends Activity 
 {
-	RecyclerView mRecyclerview;
+	
 	
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        
+      	
+		//setContentView(R.layout.main);
 		
-		setContentView(R.layout.main);
 		
 		
-//		mRecyclerview = (RecyclerView) findViewById(R.id.main_RecyclerView);
-//		
 		List<KfMapData<String>> data = new ArrayList<KfMapData<String>>();
 		for(int i =0; i < 9 ; i++)
 		{
@@ -41,8 +39,11 @@ public class MainActivity extends Activity
 		data.get(4).getNex().add(data.get(6));
 		data.get(4).getNex().add(data.get(7));
 		data.get(4).getNex().add(data.get(8));
-		LinearLayout ll = (LinearLayout) findViewById(R.id.mainLinearLayout);
-		ll.addView(new KfMapView(this,data),LayoutParams.MATCH_PARENT,LayoutParams.MATCH_PARENT);
+		//LinearLayout ll = (LinearLayout) findViewById(R.id.mainLinearLayout);
+		KfMapView map = new KfMapView(this); //(KfMapView) findViewById(R.id.mKfMapView);
+		map.setData(data);
+		setContentView(map);
+		//ll.addView(map,LayoutParams.MATCH_PARENT,LayoutParams.MATCH_PARENT);
 		}
 		
     

@@ -20,7 +20,6 @@ public class KfMapView extends ViewGroup
 	
 	List<KfMapData<String>> data;
 	
-	Context context;
 	
 	//AttributeSet attrs;
 	
@@ -43,199 +42,123 @@ public class KfMapView extends ViewGroup
 	
 	List<Line> lines = new ArrayList<Line>();
 	
-	public KfMapView(Context context,List<KfMapData<String>> data){
-		this(context,null,data);
-	}
+	enum DrawStatus{empty,draw};
 	
-	public KfMapView(final Context context,AttributeSet attrs,List<KfMapData<String>> data){
-		super(context,attrs);
-		this.data = data;
-		this.context = context;
-		
-		initData();
+	private DrawStatus drawStatus = DrawStatus.empty;
+	
+	
+	public KfMapView(Context context){
+		super(context,null);
+		picBackground = getContext().getResources().getDrawable(R.drawable.image_1);
 
-		picBackground = getResources().getDrawable(R.drawable.image_1);
-		
 		setBackground(picBackground);
-		
+
 		bule1 = Color.parseColor("#011935");
 		colorBackGrpund = Color.parseColor("#00343f");
 		bule3 = Color.parseColor("#1db0b8");
 		bule4 = Color.parseColor("#37c6c0");
 		bule5 = Color.parseColor("#d0e9ff");
-		
+
 		//setBackgroundColor(colorBackGrpund);
-		
-		
+
+
 		//do scroll
 		setOnTouchListener(new OnTouchListener(){
 
-			int lastRawX = 0;
-			int lastRawY = 0;
+				int lastRawX = 0;
+				int lastRawY = 0;
 				@Override
 				public boolean onTouch(View p1, MotionEvent p2)
 				{
 
-						for(int i =0 ; i < getChildCount();i++){
-							KfMapNodeView view = (KfMapView.KfMapNodeView) getChildAt(i);
-							layout(view);
-						}
-						int rawX = (int) p2.getRawX();
-						int rawY = (int) p2.getRawY();
+					for(int i =0 ; i < getChildCount();i++){
+						KfMapNodeView view = (KfMapView.KfMapNodeView) getChildAt(i);
+						layout(view);
+					}
+					int rawX = (int) p2.getRawX();
+					int rawY = (int) p2.getRawY();
 
-						int dX = rawX-lastRawX;
-						int dY = rawY - lastRawY;
-						//Toast.makeText(context,dX+","+dY,Toast.LENGTH_SHORT).show();
+					int dX = rawX-lastRawX;
+					int dY = rawY - lastRawY;
+					//Toast.makeText(context,dX+","+dY,Toast.LENGTH_SHORT).show();
 
-						if(Math.abs(dX)<100)
-							baseX+=dX;
-						if(Math.abs(dY)<100)
-							baseY+=dY;
-						lastRawX = rawX;
-						lastRawY = rawY;
-					
-						
+					if(Math.abs(dX)<100)
+						baseX+=dX;
+					if(Math.abs(dY)<100)
+						baseY+=dY;
+					lastRawX = rawX;
+					lastRawY = rawY;
+
+
 					return true;
 				}
 			});
 	}
 	
-	public void addView(View child,int radius){
-		addView(child,radius,radius);
-	}
 	
-//
-//	private void dispatchChild()
-//	{
-//		int count = data.size();
-//		
-//		for(int i =0 ; i < count; i++){
-//			final KfMapNodeView child;
-//			
-//			child = new KfMapNodeView(context);
-//			child.setText(data.get(i).getData());
-//			child.setVisibility(View.INVISIBLE);
-//			child.setPadding(30,30,30,30);
-//			if(i ==0)child.setIsFirstView(true);
-//			child.setOnClickListener(new OnClickListener(){
-//
-//					@Override
-//					public void onClick(View p1)
-//					{
-//
-//						if(child.getDrawStatus() == KfMapNodeView.DRAW_STATUS_CIRCLE){
-//							child.setDrawStatus(KfMapNodeView.DRAW_STATUS_DEFAULT);
-//						}else{
-//							child.setDrawStatus(KfMapNodeView.DRAW_STATUS_CIRCLE);
-//						}
-//						Toast.makeText(context,child.getText().toString(),Toast.LENGTH_SHORT).show();
-//					}
-//				});
-//			child.setOnLongClickListener(new OnLongClickListener(){
-//
-//					@Override
-//					public boolean onLongClick(View p1)
-//					{
-//						//if(child.shouldMove == false) child.shouldMove = true;
-//						return false;
-//					}
-//				});
-//
-//			child.setOnTouchListener(new OnTouchListener(){
-//
-//					@Override
-//					public boolean onTouch(View p1, MotionEvent p2)
-//					{
-//						if(child.shouldMove){
-//							
-//							float rawX = p2.getRawX();
-//							float rawY = p2.getRawY();
-//							
-//							child.setRCenter(new PointF(rawX-getX()-baseX,rawY-getY()-baseY));
-//							
-//							
-//							isTooClose(child,true,false,180,1000);
-//							
-//							
-//							layout(child);
-//							
-//							child.setState(KfMapNodeView.TOUCH_STATUS_ON_TOUCH_MOVING);
-//							
-//							//Toast.makeText(context,rawX +"/"+child.getRelativeX()+"\n"+rawY +"/"+child.getRelativeY(),Toast.LENGTH_SHORT).show();
-//						}
-//						if(p2.getAction() == MotionEvent.ACTION_UP)
-//						{
-//							child.shouldMove = false;
-//							
-//							for(int i =0 ; i < getChildCount(); i++){
-//								KfMapNodeView view = (KfMapView.KfMapNodeView) getChildAt(i);
-//								view.setState(KfMapNodeView.TOUCH_STATUS_DEFAULT);
-//							}
-//							
-//							
-//					
-//						}
-//						return false;
-//					}
-//				});
-//			addView(child,200);
-//			
-//		}
-//		
-//		
-//	}
-//	
-//
+
+	
+	
+	
 	@Override
 	protected void dispatchDraw(Canvas canvas)
 	{
 
+		switch(drawStatus){
+			case draw:
+				mPaint = new Paint();
 
-		mPaint = new Paint();
+				mPaint.setColor(bule4);
+				mPaint.setAntiAlias(true);
+				mPaint.setStrokeWidth(20);
+				mPaint.setAlpha(140);
 
-		mPaint.setColor(bule4);
-		mPaint.setAntiAlias(true);
-		mPaint.setStrokeWidth(20);
+				//spread vies on load
+				if(!isLoaded)
+					startFirstView((KfMapNodeView)getChildAt(0),canvas);
 
-		//spread vies on load
-		if(!isLoaded)
-			startFirstView((KfMapNodeView)getChildAt(0),canvas);
-
-		//link views by nex
-		for(int i = 0; i < getChildCount();i++){
-			if(getChildAt(i).getVisibility() == View.VISIBLE){
-				KfMapNodeView view = (KfMapView.KfMapNodeView) getChildAt(i);
-				//get kfmapdata from view;
-				int pos = data.size()-1;
-				for(;pos>-1;pos--){
-					if(data.get(pos).getData().equals(view.getText().toString()))
-						break;
-				}
-				if(pos == -1) return ;
-				KfMapData<String> d = data.get(pos);
-				for(int j = 0; j < d.getNex().size();j++){
-					KfMapNodeView view2 = findNodeViewByString(d.getNex().get(j).getData());
-					if(view2.isOnCurrectPosition)
-						drawLine(canvas,view,view2,mPaint);
-				}
-			}
-		}
-
-		//link views by drag & touch
-		for(int i =0; i < getChildCount();i++){
-			KfMapNodeView view = (KfMapView.KfMapNodeView) getChildAt(i);
-			if(view.getState() == KfMapNodeView.TOUCH_STATUS_ON_TOUCH_MOVING){
-				for(int j = 0; j < getChildCount();j++){
-					KfMapNodeView tView = (KfMapView.KfMapNodeView) getChildAt(j);
-					if(tView.getState() == KfMapNodeView.TOUCH_STATUS_ON_TOUCH_DRAGING){
-						Paint paint = new Paint();
-						paint.setColor(bule5);
-						paint.setStrokeWidth(5);
-						drawLine(canvas,view,tView,paint);
+				//link views by nex
+				for(int i = 0; i < getChildCount();i++){
+					if(getChildAt(i).getVisibility() == View.VISIBLE){
+						KfMapNodeView view = (KfMapView.KfMapNodeView) getChildAt(i);
+						//get kfmapdata from view;
+						int pos = data.size()-1;
+						for(;pos>-1;pos--){
+							if(data.get(pos).getData().equals(view.getText().toString()))
+								break;
+						}
+						if(pos == -1) return ;
+						KfMapData<String> d = data.get(pos);
+						for(int j = 0; j < d.getNex().size();j++){
+							KfMapNodeView view2 = findNodeViewByString(d.getNex().get(j).getData());
+							if(view2.isOnCurrectPosition)
+								drawLine(canvas,view,view2,mPaint);
+						}
 					}
 				}
-			}
+
+				//link views by drag & touch
+				for(int i =0; i < getChildCount();i++){
+					KfMapNodeView view = (KfMapView.KfMapNodeView) getChildAt(i);
+					if(view.getState() == KfMapNodeView.TOUCH_STATUS_ON_TOUCH_MOVING){
+						for(int j = 0; j < getChildCount();j++){
+							KfMapNodeView tView = (KfMapView.KfMapNodeView) getChildAt(j);
+							if(tView.getState() == KfMapNodeView.TOUCH_STATUS_ON_TOUCH_DRAGING){
+								Paint paint = new Paint();
+								paint.setColor(bule5);
+								paint.setStrokeWidth(5);
+								drawLine(canvas,view,tView,paint);
+							}
+						}
+					}
+				}
+				
+				break;
+				
+			case empty:
+				break;
 		}
+
 		super.dispatchDraw(canvas);
 
 		//Toast.makeText(context,"finish",Toast.LENGTH_SHORT).show();
@@ -244,22 +167,18 @@ public class KfMapView extends ViewGroup
 	int inter = 0;
 	public void drawLine(Canvas canvas,KfMapNodeView view1,KfMapNodeView view2,Paint paint){
 
-		Line cLine = new Line(view1,view2);
-		for(Line l:lines){
-			if(l.getView1() == view1 && l.getView2() == view2){
-				return;
-			}else if(isIntersect(l,cLine)){
-				//Toast.makeText(context,"inter : "+ (++inter),Toast.LENGTH_SHORT).show();
-				setChildRCenter(view1);
-				return;
-			}
-		}
-						
-		lines.add(cLine);
+//		Line cLine = new Line(view1,view2);
+//		for(Line l:lines){
+//			if(l.getView1() == view1 && l.getView2() == view2){
+//				return;
+//			}
+//		}
+//						
+//		lines.add(cLine);
 		canvas.drawLine(view1.getRCenter().x+baseX
-						,view1.getRCenter().y+baseY
+						,view1.getRCenter().y-view1.getSCenter().y+baseY
 						,view2.getRCenter().x+baseX
-						,view2.getRCenter().y+baseY,paint);
+						,view2.getRCenter().y-view2.getSCenter().y+baseY,paint);
 		
 	}
 
@@ -287,7 +206,7 @@ public class KfMapView extends ViewGroup
 		for(int i = 0; i < data.size();i++){
 			
 			//add view in MapData
-			KfMapNodeView child = new KfMapNodeView(context);
+			final KfMapNodeView child = new KfMapNodeView(getContext());
 			child.setText(data.get(i).getData());
 			child.setVisibility(View.INVISIBLE);
 			child.setPadding(30,30,30,30);
@@ -302,35 +221,60 @@ public class KfMapView extends ViewGroup
 			//note as first node
 			if(i == 0) child.setIsFirstView(true);
 		
-			addView(child,200);
+			addView(child,LayoutParams.WRAP_CONTENT,LayoutParams.WRAP_CONTENT);
+			
+			//set child listener
+			child.setOnLongClickListener(new OnLongClickListener(){
+
+					@Override
+					public boolean onLongClick(View p1)
+					{
+						child.touchStatus = KfMapNodeView.TOUCH_STATUS_ON_TOUCH_DRAGING;
+						
+						
+						return false;
+					}
+				});
+				
+			child.setOnTouchListener(new OnTouchListener(){
+
+				float x,y;
+					@Override
+					public boolean onTouch(View p1, MotionEvent p2)
+					{
+						switch(p2.getAction()){
+							case  MotionEvent.ACTION_UP:
+								child.touchStatus = KfMapNodeView.TOUCH_STATUS_DEFAULT;
+								break;
+							case MotionEvent.ACTION_MOVE:
+								if(child.touchStatus == KfMapNodeView.TOUCH_STATUS_ON_TOUCH_DRAGING);
+								{
+									if(x != p2.getRawX()){
+										child.setRCenter(new PointF(child.getRCenter().x +p2.getRawX()-x,child.getRCenter().y));
+									}
+									if(y != p2.getRawY()){
+										child.setRCenter(new PointF(child.getRCenter().x,child.getRCenter().y+p2.getRawY()-y));
+									}
+									isTooClose(child,true,false,300,1000);
+									layout(child);
+									x = p2.getRawX();
+									y = p2.getRawY();
+							}
+								break;
+							case MotionEvent.ACTION_DOWN:
+								x = p2.getRawX();
+								y = p2.getRawY();
+								break;
+						}
+						
+						return false;
+					}
+				});
+			
 		}
 	}
 	
-	//check isIntersect between two lines
-	public boolean isIntersect(Line line1,Line line2){
-
-		float k1,k2,b1,b2;
-
-		k1 = line1.getK();
-		k2 = line2.getK();
-
-		b1 = line1.getP1().y - k1 * line1.getP2().x;
-		b2 = line2.getP1().y - k2 * line2.getP2().x;
-
-		float px,py;
-
-		px = (b1-b2)/(k2-k1);
-		py = k1 * px + b1;
-
-		PointF P = new PointF(px,py);
-
-		float ab = getDistance(line1.getP1(),line1.getP2());
-		float ap = getDistance(line1.getP1(),P);
-		
-		if(ab<ap)return true;
-		else
-		return false;
-	}
+	
 
 	
 
@@ -408,10 +352,18 @@ public class KfMapView extends ViewGroup
 		int i = 0;
 		for(KfMapData mapData:data){
 			KfMapNodeView view = mapData.getView();
-			view.setRCenter(new PointF((float)Math.random()*getMeasuredWidth(),(float)Math.random()*getMeasuredHeight()));
+			setChildRCenter(view);
+			//view.setRCenter(new PointF((float)Math.random()*getMeasuredWidth(),(float)Math.random()*getMeasuredHeight()));
 			layout(view);
 		}
 		
+	}
+	
+	private void onLoadData(){
+		initData();
+		
+		//set status;
+		drawStatus = DrawStatus.draw;
 	}
 	
 
@@ -527,8 +479,8 @@ public class KfMapView extends ViewGroup
 	{
 		do{
 			
-			float x = (float) (Math.random() *(getMeasuredWidth()*3-getMeasuredWidth()));
-			float y = (float) (Math.random() * (getMeasuredHeight()*3-getMeasuredHeight()));
+			float x = (float) (Math.random() *(getMeasuredWidth()*2-getMeasuredWidth()));
+			float y = (float) (Math.random() * (getMeasuredHeight()*2-getMeasuredHeight()));
 			child.setRCenter(new PointF(x,y));
 			
 		}while(isTooClose(child,true,false,300,1000));
@@ -559,7 +511,10 @@ public class KfMapView extends ViewGroup
 		}
 	}
 	
-	
+	public void setData(List<KfMapData<String>> data){
+		this.data = data;
+		onLoadData();
+	}
 	
 	
 	
@@ -633,6 +588,7 @@ public class KfMapView extends ViewGroup
 			firPaint.setColor(firstColor);
 			firPaint.setStrokeWidth(33);
 			firPaint.setAntiAlias(true);
+			mPaint.setAlpha(160);
 		}
 
 		@Override

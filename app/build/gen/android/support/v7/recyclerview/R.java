@@ -51,8 +51,7 @@ containing a value of this type.
     }
     public static final class id {
         public static final int item_touch_helper_previous_elevation=0x7f050000;
-        public static final int mainLinearLayout=0x7f050001;
-        public static final int recyclerview_item_TextView=0x7f050002;
+        public static final int recyclerview_item_TextView=0x7f050001;
     }
     public static final class layout {
         public static final int main=0x7f030000;
